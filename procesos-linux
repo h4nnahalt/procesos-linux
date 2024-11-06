@@ -1,0 +1,167 @@
+A la hora de trabajar en línea de comandos, una sola terminal puede retrasarnos a la hora de tener que esperar a que se ejecuten ciertos procesos antes de lanzar otros.
+
+Una solución que presentan los sitemas Linux es la posibilidad de pasar tareas a segundo plano y asi poder segir trabajando en primer plano.
+
+La manera de hacer esto es mediante atajos de teclado y los siguentes comandos:
+
+Con ps vemos los procesos que se están ejecutando en este momento
+
+$ps
+    PID TTY          TIME CMD
+   3573 pts/0    00:00:00 bash
+   3579 pts/0    00:00:00 ps
+
+ps -o le tengo que indicar que más quiero que me muestre, por ejemplo pid
+
+ps -o pid
+    PID
+   4106
+   4794
+
+ps -eo pid me los mostrará todos
+
+$ps -eo pid
+    PID
+      1
+      2
+      3
+      4
+      5
+      6
+
+$ps -eo pid,uid
+    PID   UID
+      1     0
+      2     0
+      3     0
+      4     0
+      5     0
+      6     0
+
+ps -o solo los de esta sesión
+
+ps -o pid,uid
+    PID   UID
+   4106  1000
+   4802  1000
+
+pstree me mostrara todos los procesos en forma de arbol
+
+pstree
+systemd─┬─ModemManager───2*[{ModemManager}]
+        ├─NetworkManager───2*[{NetworkManager}]
+        ├─accounts-daemon───2*[{accounts-daemon}]
+
+Con el comando jobs nos muestra el estado de los trabajos que se realizando actualmente.
+
+Con sleep creo un proceso que estará contando por ejemplo hasta 100.
+
+si hago control Z este proceso, pasa a segundo plano, pero se detiene.
+
+bg Pasara a segundo plano el comanando sin detenerlo
+
+con jobs me muestra el estado de los trabajos que tengo corriendo actualmente.
+
+$sleep 100
+^Z
+[1]+  Detenido                sleep 100
+┌─[✗]─[h4nna@parrot]─[~]
+└──╼ $sleep 100
+bg
+^C
+┌─[✗]─[h4nna@parrot]─[~]
+└──╼ $jobs
+[1]+  Detenido                sleep 100
+┌─[h4nna@parrot]─[~]
+└──╼ $sleep 100
+bg
+^Z
+[2]+  Detenido                sleep 100
+┌─[✗]─[h4nna@parrot]─[~]
+└──╼ $jobs
+[1]-  Detenido                sleep 100
+[2]+  Detenido                sleep 100
+┌─[h4nna@parrot]─[~]
+└──╼ $bg 2
+[2]+ sleep 100 &
+┌─[h4nna@parrot]─[~]
+└──╼ $jobs
+[1]+  Detenido                sleep 100
+[2]-  Ejecutando              sleep 100 &
+┌─[h4nna@parrot]─[~]
+└──╼ $bg 1
+[1]+ sleep 100 &
+┌─[h4nna@parrot]─[~]
+└──╼ $jobs
+[1]-  Ejecutando              sleep 100 &
+[2]+  Ejecutando              sleep 100 &
+
+Si a sleep [numero] le añado & vere los procesos que se están ejecutando
+
+ $sleep 100 &
+[3] 3906
+[1]   Hecho                   sleep 100
+[2]   Hecho                   sleep 100
+
+Con el comando screen puedo cambiar de pantalla y dejar en otra trabajos en segundo plano.
+
+Control+D desconeta de esta terminal
+
+screen -ls veo ventanas que se están ejecutando
+
+screen -r PID mue muevo a la ventana que quiera.
+
+$screen -r
+There are several suitable screens on:
+    4171.pts-0.parrot    (11/06/24 22:33:06)    (Detached)
+    4113.pts-0.parrot    (11/06/24 22:32:39)    (Detached)
+    4026.pts-0.parrot    (11/06/24 22:31:03)    (Detached)
+Type "screen [-d] -r [pid.]tty.host" to resume one of them.
+
+screen
+[screen is terminating]
+
+top, me muestra de forma resumida los procesos que se están ejecutando, sus PID
+
+top - 22:42:49 up  1:03,  1 user,  load average: 0,24, 0,30, 0,27
+Tasks: 329 total,   1 running, 328 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  1,1 us,  0,7 sy,  0,0 ni, 98,2 id,  0,0 wa,  0,0 hi,  0,0 si,  0,0 st
+MiB Mem :  15929,2 total,   7199,8 free,   2589,9 used,   6139,5 buff/cache
+MiB Swap:      0,0 total,      0,0 free,      0,0 used.  12982,6 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND                                                                                                                
+   2548 h4nna     20   0 2677404 262384 101832 S  10,6   1,6   2:11.04 Isolated Web Co                                                                                                        
+     95 root      20   0       0      0      0 I   9,0   0,0   0:29.59 kworker/u64:1-events_unbound                                                                                           
+   1862 h4nna     20   0 3459644 548480 216524 S   6,6   3,4   1:50.87 firefox-esr
+
+htop me muestra más insformacián en tiempo real, pero me quita el poder seguir usando la terminal.
+
+el comando at ejecuta comando a horas específicadas por el usuario. Envia las salidas al correo (interno) del usuario
+
+at -c PID me muestra informacion sobre el trabajo si la encuentra
+
+at -c 4026
+
+at + hora, me ejecuta lo que le diga a esa hora
+
+#at 23:03
+warning: commands will be executed using /bin/sh
+at> echo "prueba"
+at> <EOT>
+job 3 at Tue Jun 11 23:03:00 2024
+
+con el comando mail abro el mail del sistema para usuarios que no sean root.
+
+$mail
+Mail version 8.1.2 01/15/2001.  Type ? for help.
+"/var/mail/h4nna": 3 messages 3 new
+>N  1 root@localhost.lo  Thu Dec 07 06:13   27/1082  Output from your job        2
+ N  2 h4nna@localhost.l  Fri Dec 08 10:22   17/597   Output from your job        1
+ N  3 root@localhost.lo  Tue Jun 11 23:03   17/571   Output from your job        3
+
+aclaración root, no tiene mail
+
+mail
+No mail for root
+
+-\_C''/-
